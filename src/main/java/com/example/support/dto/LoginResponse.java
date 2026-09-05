@@ -1,0 +1,15 @@
+package com.example.support.dto;
+
+import com.example.support.enums.Role;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class LoginResponse {
+
+    private Long id;
+    private String name;
+    private String email;
+    private Role role;
+}
