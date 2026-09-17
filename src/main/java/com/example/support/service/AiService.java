@@ -86,4 +86,35 @@ public class AiService {
             );
         }
     }
+
+    public String generateSuggestedReply(String conversation) {
+
+        String prompt = """
+            You are an AI customer support assistant.
+
+            Generate a professional, helpful, and context-aware reply
+            to the latest customer message.
+
+            Consider the complete conversation before writing the reply.
+
+            Conversation:
+            %s
+
+            Instructions:
+            - Reply directly to the latest customer message.
+            - Use information already provided in the conversation.
+            - Do not ask for information that the customer has already provided.
+            - Do not invent order details, refunds, delivery dates, or company policies.
+            - If required information is missing, politely ask for it.
+            - Do not mention that you are an AI.
+            - Do not use markdown.
+            - Return only the reply text.
+            """.formatted(conversation);
+
+        return chatClient
+                .prompt()
+                .user(prompt)
+                .call()
+                .content();
+    }
 }

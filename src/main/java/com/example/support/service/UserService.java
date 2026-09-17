@@ -75,4 +75,10 @@ public class UserService {
                 .toList();
     }
 
+    public User getUserById(Long userId) {
+
+        return userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found"));
+    }
 }

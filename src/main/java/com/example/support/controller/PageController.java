@@ -19,6 +19,10 @@ import com.example.support.enums.TicketStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import com.example.support.entity.User;
+import com.example.support.enums.Role;
 
 @Controller
 public class PageController {
@@ -252,9 +256,44 @@ public class PageController {
         List<MessageResponse> messages =
                 ticketService.getTicketMessages(ticketId, email);
 
+        Map<Long, String> suggestedReplies = new HashMap<>();
+
+        for (MessageResponse message : messages) {
+
+            String suggestedReply = null;
+
+            try {
+                // Generate suggestions only for customer messages
+                User sender =
+                        userService.getUserById(message.getSenderId());
+
+                if (sender.getRole() == Role.CUSTOMER) {
+
+                    suggestedReply =
+                            ticketService.generateSuggestedReplyForMessage(
+                                    ticketId,
+                                    message.getId(),
+                                    email
+                            );
+                }
+
+            } catch (Exception e) {
+
+                suggestedReply =
+                        "Unable to generate a suggested reply for this message.";
+            }
+
+            if (suggestedReply != null) {
+                suggestedReplies.put(
+                        message.getId(),
+                        suggestedReply
+                );
+            }
+        }
+
         model.addAttribute("ticket", ticket);
         model.addAttribute("messages", messages);
-
+        model.addAttribute("suggestedReplies", suggestedReplies);
         model.addAttribute(
                 "loggedInUser",
                 userService.getUserByEmail(email)

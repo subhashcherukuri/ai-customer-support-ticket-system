@@ -122,3 +122,30 @@ a {
 .card:hover {
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
 }
+
+.message-card {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.message-content {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 14px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.ai-suggestion-box {
+    background: #f0f6ff;
+    border: 1px solid #cfe2ff;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.ai-suggestion-box textarea {
+    background: #ffffff;
+    resize: vertical;
+}

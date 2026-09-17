@@ -17,6 +17,7 @@ import com.example.support.exception.AccessDeniedException;
 import java.time.LocalDateTime;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class TicketService {
@@ -726,4 +727,87 @@ public class TicketService {
         );
     }
 
+    public String generateSuggestedReplyForMessage(
+            Long ticketId,
+            Long messageId,
+            String email) {
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Ticket not found"));
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found"));
+
+        // ADMIN can access any ticket
+        if (user.getRole() == Role.ADMIN) {
+            // Allowed
+        }
+
+        // AGENT can access only assigned tickets
+        else if (user.getRole() == Role.AGENT) {
+
+            if (ticket.getAssignedAgent() == null ||
+                    !ticket.getAssignedAgent()
+                            .getId()
+                            .equals(user.getId())) {
+
+                throw new AccessDeniedException(
+                        "You can generate replies only for tickets assigned to you");
+            }
+        }
+
+        // CUSTOMER cannot generate agent suggestions
+        else {
+            throw new AccessDeniedException(
+                    "You are not allowed to generate suggested replies");
+        }
+
+        List<TicketMessage> messages =
+                ticketMessageRepository
+                        .findByTicketOrderByCreatedAtAsc(ticket);
+
+        TicketMessage selectedMessage = messages.stream()
+                .filter(message ->
+                        message.getId().equals(messageId))
+                .findFirst()
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Message not found"));
+
+        // Only customer messages should receive suggested replies
+        if (selectedMessage.getSender().getRole() != Role.CUSTOMER) {
+            throw new BadRequestException(
+                    "Suggested replies can be generated only for customer messages");
+        }
+
+        StringBuilder conversation = new StringBuilder();
+
+        conversation.append("Ticket title: ")
+                .append(ticket.getTitle())
+                .append("\n\n");
+
+        conversation.append("Original ticket description: ")
+                .append(ticket.getDescription())
+                .append("\n\n");
+
+        conversation.append("Conversation so far:\n");
+
+        // Include messages only up to the selected customer message
+        for (TicketMessage message : messages) {
+
+            conversation.append(message.getSender().getRole())
+                    .append(": ")
+                    .append(message.getMessage())
+                    .append("\n");
+
+            if (message.getId().equals(messageId)) {
+                break;
+            }
+        }
+
+        return aiService.generateSuggestedReply(
+                conversation.toString()
+        );
+    }
 }
